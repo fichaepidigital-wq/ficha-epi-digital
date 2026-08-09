@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ficha de EPI Digital</title>
+<title>Ficha de EPI Digital — Gerar Ficha</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <header class="topo">
     <h1>📋 Ficha de EPI Digital</h1>
-    <p>Registro de entrega de Equipamento de Proteção Individual com assinatura biométrica</p>
+    <p>Gerar link de assinatura para o funcionário</p>
+    <nav class="nav-topo"><a href="admin.html">⚙️ Área administrativa</a></nav>
   </header>
 
   <main class="container">
@@ -22,6 +23,7 @@
         <select id="select-funcionario" required>
           <option value="">Carregando...</option>
         </select>
+        <p class="ajuda" id="aviso-email"></p>
       </section>
 
       <section class="cartao">
@@ -29,25 +31,18 @@
         <div id="lista-epis" class="lista-epis">Carregando...</div>
       </section>
 
-      <section class="cartao">
-        <h2>3. Assinatura biométrica</h2>
-        <p class="ajuda">
-          Assine com o dedo, caneta digital ou mouse no campo abaixo. O sistema
-          registra também a dinâmica do traço (velocidade, pressão e geometria)
-          como dado biométrico complementar.
-        </p>
-        <canvas id="signature-pad"></canvas>
-        <div class="acoes-assinatura">
-          <button type="button" id="btn-limpar" class="botao secundario">Limpar</button>
-          <button type="button" id="btn-geo" class="botao secundario">📍 Capturar localização (opcional)</button>
-          <span id="status-geo" class="status-geo"></span>
-        </div>
-      </section>
-
-      <button type="submit" id="btn-enviar" class="botao primario">Assinar e Registrar Entrega</button>
-
-      <div id="resultado" class="resultado"></div>
+      <button type="submit" id="btn-gerar" class="botao primario">Gerar link de assinatura</button>
     </form>
+
+    <div id="resultado-link" class="cartao resultado-link" style="display:none;">
+      <h2>✅ Ficha criada — pendente de assinatura</h2>
+      <p>Envie este link para o celular do funcionário assinar:</p>
+      <div class="campo-link">
+        <input type="text" id="input-link" readonly>
+        <button type="button" id="btn-copiar" class="botao secundario">Copiar</button>
+      </div>
+      <a id="btn-whatsapp" class="botao whatsapp" target="_blank">📲 Enviar por WhatsApp</a>
+    </div>
   </main>
 
   <footer class="rodape">
