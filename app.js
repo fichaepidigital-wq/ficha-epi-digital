@@ -3,18 +3,25 @@ const CONFIG = {
 };
 
 let funcionariosCache = [];
+let contadorLinhas = 0;
 
 async function carregarFuncionarios() {
-  const res = await fetch(`${CONFIG.API_URL}?action=funcionarios`);
-  funcionariosCache = await res.json();
-  const select = document.getElementById('select-funcionario');
-  select.innerHTML = '<option value="">Selecione...</option>';
-  funcionariosCache.forEach(f => {
-    const opt = document.createElement('option');
-    opt.value = f.id;
-    opt.textContent = `${f.nome} — ${f.cargo || ''}`;
-    select.appendChild(opt);
-  });
+  try {
+    const res = await fetch(`${CONFIG.API_URL}?action=funcionarios`);
+    funcionariosCache = await res.json();
+    const select = document.getElementById('select-funcionario');
+    select.innerHTML = '<option value="">Selecione...</option>';
+    funcionariosCache
+      .filter(f => f.status !== 'Inativo')
+      .forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = `${f.nome} — ${f.cargo || ''}`;
+        select.appendChild(opt);
+      });
+  } catch (err) {
+    console.error('Erro ao carregar funcionários:', err);
+  }
 }
 
 document.getElementById('select-funcionario').addEventListener('change', (e) => {
@@ -27,29 +34,61 @@ document.getElementById('select-funcionario').addEventListener('change', (e) => 
   }
 });
 
-async function carregarEpis() {
-  const res = await fetch(`${CONFIG.API_URL}?action=epis`);
-  const dados = await res.json();
-  const container = document.getElementById('lista-epis');
-  container.innerHTML = '';
-  dados.forEach(epi => {
-    const label = document.createElement('label');
-    label.className = 'epi-item';
-    label.innerHTML = `
-      <input type="checkbox" value="${epi.id}" data-nome="${epi.nome}" data-ca="${epi.ca}">
-      <span>${epi.nome} <small>(CA ${epi.ca})</small></span>
-    `;
-    container.appendChild(label);
-  });
+/* ---------------------- ITENS DE EPI (CAMPO LIVRE) ---------------------- */
+
+async function carregarSugestoesEpis() {
+  try {
+    const res = await fetch(`${CONFIG.API_URL}?action=epis`);
+    const dados = await res.json();
+    const datalist = document.getElementById('lista-nomes-epi');
+    datalist.innerHTML = dados.map(epi => `<option value="${epi.nome}">`).join('');
+  } catch (err) {
+    console.error('Erro ao carregar sugestões de EPI:', err);
+  }
 }
 
-function coletarItensSelecionados() {
-  return Array.from(document.querySelectorAll('#lista-epis input:checked')).map(el => ({
-    id: el.value,
-    nome: el.dataset.nome,
-    ca: el.dataset.ca
-  }));
+function adicionarLinhaItem(nome, ca, devolucao) {
+  nome = nome || '';
+  ca = ca || '';
+  devolucao = devolucao || false;
+
+  contadorLinhas++;
+  const id = `item-${contadorLinhas}`;
+  const div = document.createElement('div');
+  div.className = 'linha-item-epi';
+  div.dataset.linhaId = id;
+  div.innerHTML = `
+    <input type="text" class="input-epi-nome" list="lista-nomes-epi" placeholder="Ex: Capacete de Segurança" value="${nome}">
+    <input type="text" class="input-epi-ca" placeholder="Ex: 12345" value="${ca}">
+    <input type="checkbox" class="input-epi-devolucao" title="Este EPI precisa ser devolvido" ${devolucao ? 'checked' : ''}>
+    <button type="button" class="btn-remover-item" title="Remover">✕</button>
+  `;
+  div.querySelector('.btn-remover-item').addEventListener('click', () => {
+    const linhas = document.getElementById('linhas-itens-epi');
+    if (linhas.children.length > 1) {
+      div.remove();
+    } else {
+      div.querySelector('.input-epi-nome').value = '';
+      div.querySelector('.input-epi-ca').value = '';
+      div.querySelector('.input-epi-devolucao').checked = false;
+    }
+  });
+  document.getElementById('linhas-itens-epi').appendChild(div);
 }
+
+document.getElementById('btn-add-item').addEventListener('click', () => adicionarLinhaItem());
+
+function coletarItensSelecionados() {
+  return Array.from(document.querySelectorAll('.linha-item-epi:not(.cabecalho)'))
+    .map(linha => ({
+      nome: linha.querySelector('.input-epi-nome').value.trim(),
+      ca: linha.querySelector('.input-epi-ca').value.trim(),
+      devolucao: linha.querySelector('.input-epi-devolucao').checked
+    }))
+    .filter(item => item.nome !== '');
+}
+
+/* ---------------------- CRIAR FICHA ---------------------- */
 
 document.getElementById('form-ficha').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -60,7 +99,7 @@ document.getElementById('form-ficha').addEventListener('submit', async (e) => {
 
   if (!funcionarioId) return alert('Selecione o funcionário');
   if (!funcionario.email) return alert('Este funcionário precisa ter um e-mail Google cadastrado antes de gerar a ficha.');
-  if (!itens.length) return alert('Selecione ao menos um EPI');
+  if (!itens.length) return alert('Informe ao menos um item de EPI');
 
   btn.disabled = true;
   btn.textContent = 'Gerando...';
@@ -88,6 +127,8 @@ document.getElementById('form-ficha').addEventListener('submit', async (e) => {
       document.getElementById('resultado-link').style.display = 'block';
       document.getElementById('resultado-link').scrollIntoView({ behavior: 'smooth' });
       e.target.reset();
+      document.getElementById('linhas-itens-epi').innerHTML = '';
+      adicionarLinhaItem();
       document.getElementById('aviso-email').textContent = '';
     } else {
       alert('Erro: ' + resultado.error);
@@ -110,4 +151,5 @@ document.getElementById('btn-copiar').addEventListener('click', () => {
 });
 
 carregarFuncionarios();
-carregarEpis();
+carregarSugestoesEpis();
+adicionarLinhaItem();
