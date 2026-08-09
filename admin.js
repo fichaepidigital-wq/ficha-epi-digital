@@ -3,6 +3,7 @@ const CONFIG = {
 };
 
 let funcionariosCache = [];
+let fichasCache = [];
 let funcionarioSelecionadoId = null;
 
 /* ---------------------- NAVEGAÇÃO DO MENU LATERAL ---------------------- */
@@ -161,22 +162,62 @@ async function verHistorico(funcionarioId) {
   document.getElementById('titulo-historico').textContent = `Histórico de ${funcionario.nome}`;
   document.getElementById('lista-historico').innerHTML = 'Carregando...';
   document.getElementById('status-exportar').textContent = '';
+  document.getElementById('filtro-tipo-epi').value = '';
+  document.getElementById('filtro-data-inicio').value = '';
+  document.getElementById('filtro-data-fim').value = '';
   document.getElementById('secao-historico').scrollIntoView({ behavior: 'smooth' });
 
   const res = await fetch(`${CONFIG.API_URL}?action=fichas&funcionarioId=${encodeURIComponent(funcionarioId)}`);
-  const fichas = await res.json();
+  fichasCache = await res.json();
 
+  renderizarHistorico_(fichasCache);
+}
+
+function aplicarFiltroHistorico_() {
+  const tipoEpi = document.getElementById('filtro-tipo-epi').value.toLowerCase().trim();
+  const dataInicio = document.getElementById('filtro-data-inicio').value;
+  const dataFim = document.getElementById('filtro-data-fim').value;
+
+  let filtradas = fichasCache;
+
+  if (tipoEpi) {
+    filtradas = filtradas.filter(f => {
+      const itens = JSON.parse(f.itens || '[]');
+      return itens.some(i => (i.nome || '').toLowerCase().includes(tipoEpi));
+    });
+  }
+  if (dataInicio) {
+    const inicio = new Date(dataInicio + 'T00:00:00');
+    filtradas = filtradas.filter(f => f.assinadoEm && new Date(f.assinadoEm) >= inicio);
+  }
+  if (dataFim) {
+    const fim = new Date(dataFim + 'T23:59:59');
+    filtradas = filtradas.filter(f => f.assinadoEm && new Date(f.assinadoEm) <= fim);
+  }
+
+  renderizarHistorico_(filtradas);
+}
+
+document.getElementById('btn-aplicar-filtro').addEventListener('click', aplicarFiltroHistorico_);
+document.getElementById('btn-limpar-filtro').addEventListener('click', () => {
+  document.getElementById('filtro-tipo-epi').value = '';
+  document.getElementById('filtro-data-inicio').value = '';
+  document.getElementById('filtro-data-fim').value = '';
+  renderizarHistorico_(fichasCache);
+});
+
+function renderizarHistorico_(fichas) {
   if (!fichas.length) {
-    document.getElementById('lista-historico').innerHTML = '<p class="ajuda">Nenhuma ficha registrada para este funcionário ainda.</p>';
+    document.getElementById('lista-historico').innerHTML = '<p class="ajuda">Nenhuma ficha encontrada com esses critérios.</p>';
     return;
   }
 
-  fichas.sort((a, b) => {
+  const ordenadas = fichas.slice().sort((a, b) => {
     if (a.tipo !== b.tipo) return a.tipo === 'Termo' ? -1 : 1;
     return new Date(b.criadoEm) - new Date(a.criadoEm);
   });
 
-  document.getElementById('lista-historico').innerHTML = fichas.map(f => {
+  document.getElementById('lista-historico').innerHTML = ordenadas.map(f => {
     const itens = JSON.parse(f.itens || '[]');
     const badgeStatus = f.status === 'Assinada' ? 'assinada' : 'pendente';
     const badgeTipo = f.tipo === 'Termo' ? 'termo' : 'entrega';
@@ -199,12 +240,16 @@ async function verHistorico(funcionarioId) {
       `;
     }
 
+    const itensTexto = itens.length
+      ? itens.map(i => `${i.nome}${i.ca ? ' (CA ' + i.ca + ')' : ''}${i.devolucao ? ' — devolução obrigatória' : ''}`).join(', ')
+      : '';
+
     return `
       <div class="historico-item">
         <span class="badge ${badgeTipo}">${f.tipo}</span>
         <span class="badge ${badgeStatus}">${f.status}</span>
         &nbsp; ${new Date(dataRef).toLocaleString('pt-BR')}<br>
-        ${itens.length ? `<strong>Itens:</strong> ${itens.map(i => i.nome).join(', ')}<br>` : ''}
+        ${itensTexto ? `<strong>Itens:</strong> ${itensTexto}<br>` : ''}
         ${f.pdfUrl ? `<a href="${f.pdfUrl}" target="_blank">Ver PDF</a>` : ''}
         ${identificadoresHtml}
       </div>
@@ -212,18 +257,27 @@ async function verHistorico(funcionarioId) {
   }).join('');
 }
 
-/* ---------------------- EXPORTAR TODAS EM PDF (ZIP) ---------------------- */
+/* ---------------------- EXPORTAR EM PDF (ZIP), COM FILTROS ---------------------- */
 
 document.getElementById('btn-exportar-zip').addEventListener('click', async () => {
   if (!funcionarioSelecionadoId) return;
   const btn = document.getElementById('btn-exportar-zip');
   const status = document.getElementById('status-exportar');
 
+  const tipoEpi = document.getElementById('filtro-tipo-epi').value.trim();
+  const dataInicio = document.getElementById('filtro-data-inicio').value;
+  const dataFim = document.getElementById('filtro-data-fim').value;
+
+  const params = new URLSearchParams({ action: 'exportarZip', funcionarioId: funcionarioSelecionadoId });
+  if (tipoEpi) params.set('tipoEpi', tipoEpi);
+  if (dataInicio) params.set('dataInicio', dataInicio);
+  if (dataFim) params.set('dataFim', dataFim);
+
   btn.disabled = true;
-  status.textContent = 'Gerando arquivo .zip com todos os PDFs...';
+  status.textContent = 'Gerando arquivo .zip com os PDFs selecionados...';
 
   try {
-    const res = await fetch(`${CONFIG.API_URL}?action=exportarZip&funcionarioId=${encodeURIComponent(funcionarioSelecionadoId)}`);
+    const res = await fetch(`${CONFIG.API_URL}?${params.toString()}`);
     const resultado = await res.json();
 
     if (resultado.success) {
