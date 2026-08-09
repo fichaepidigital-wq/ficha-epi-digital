@@ -4,6 +4,7 @@ const CONFIG = {
 
 let funcionariosCache = [];
 let contadorLinhas = 0;
+let ultimaFichaCriadaId = null;
 
 async function carregarFuncionarios() {
   try {
@@ -28,7 +29,7 @@ document.getElementById('select-funcionario').addEventListener('change', (e) => 
   const funcionario = funcionariosCache.find(f => f.id === e.target.value);
   const aviso = document.getElementById('aviso-email');
   if (funcionario && !funcionario.email) {
-    aviso.textContent = '⚠️ Este funcionário não tem e-mail Google cadastrado. Cadastre em "Área administrativa" antes de gerar a ficha.';
+    aviso.textContent = '⚠️ Este funcionário não tem e-mail Google cadastrado. Cadastre em "Cadastro de Funcionário" antes de gerar a ficha.';
   } else {
     aviso.textContent = '';
   }
@@ -59,7 +60,7 @@ function adicionarLinhaItem(nome, ca, devolucao) {
   div.dataset.linhaId = id;
   div.innerHTML = `
     <input type="text" class="input-epi-nome" list="lista-nomes-epi" placeholder="Ex: Capacete de Segurança" value="${nome}">
-    <input type="text" class="input-epi-ca" placeholder="Ex: 12345" value="${ca}">
+    <input type="text" class="input-epi-ca" placeholder="Ex: 12345 ou N/A" value="${ca}">
     <input type="checkbox" class="input-epi-devolucao" title="Este EPI precisa ser devolvido" ${devolucao ? 'checked' : ''}>
     <button type="button" class="btn-remover-item" title="Remover">✕</button>
   `;
@@ -113,6 +114,7 @@ document.getElementById('form-ficha').addEventListener('submit', async (e) => {
     const resultado = await res.json();
 
     if (resultado.success) {
+      ultimaFichaCriadaId = resultado.id;
       const link = `${window.location.origin}${window.location.pathname.replace('index.html', '')}assinar.html?id=${resultado.id}`;
       document.getElementById('input-link').value = link;
 
@@ -124,6 +126,8 @@ document.getElementById('form-ficha').addEventListener('submit', async (e) => {
         ? `https://wa.me/55${telefone}?text=${mensagem}`
         : `https://wa.me/?text=${mensagem}`;
 
+      document.getElementById('btn-cancelar-ficha').style.display = 'inline-block';
+      document.getElementById('status-cancelamento').textContent = '';
       document.getElementById('resultado-link').style.display = 'block';
       document.getElementById('resultado-link').scrollIntoView({ behavior: 'smooth' });
       e.target.reset();
@@ -148,6 +152,42 @@ document.getElementById('btn-copiar').addEventListener('click', () => {
   const btn = document.getElementById('btn-copiar');
   btn.textContent = 'Copiado!';
   setTimeout(() => { btn.textContent = 'Copiar'; }, 1500);
+});
+
+/* ---------------------- CANCELAR FICHA CRIADA POR ENGANO ---------------------- */
+
+document.getElementById('btn-cancelar-ficha').addEventListener('click', async () => {
+  if (!ultimaFichaCriadaId) return;
+  if (!confirm('Tem certeza que deseja cancelar esta ficha? Essa ação não pode ser desfeita.')) return;
+
+  const btn = document.getElementById('btn-cancelar-ficha');
+  const status = document.getElementById('status-cancelamento');
+  btn.disabled = true;
+  btn.textContent = 'Cancelando...';
+
+  try {
+    const res = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'cancelarFicha', id: ultimaFichaCriadaId })
+    });
+    const resultado = await res.json();
+
+    if (resultado.success) {
+      status.textContent = '✅ Ficha cancelada com sucesso.';
+      btn.style.display = 'none';
+      document.getElementById('btn-whatsapp').style.display = 'none';
+      document.getElementById('btn-copiar').disabled = true;
+    } else {
+      status.textContent = '⚠️ ' + resultado.error;
+      btn.disabled = false;
+      btn.textContent = '🗑️ Cancelar esta ficha (foi criada por engano)';
+    }
+  } catch (err) {
+    status.textContent = '⚠️ Falha ao cancelar: ' + err.message;
+    btn.disabled = false;
+    btn.textContent = '🗑️ Cancelar esta ficha (foi criada por engano)';
+  }
 });
 
 carregarFuncionarios();
