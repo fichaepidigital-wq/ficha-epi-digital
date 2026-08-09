@@ -55,6 +55,16 @@
         <button type="submit" class="botao primario">Cadastrar funcionário</button>
       </form>
       <div id="resultado-cadastro" class="resultado"></div>
+
+      <div id="resultado-termo" class="cartao resultado-link" style="display:none; margin-top:14px;">
+        <h2>📄 Termo de Responsabilidade pendente</h2>
+        <p>Envie este link para o funcionário assinar antes de qualquer entrega de EPI:</p>
+        <div class="campo-link">
+          <input type="text" id="input-link-termo" readonly>
+          <button type="button" id="btn-copiar-termo" class="botao secundario">Copiar</button>
+        </div>
+        <a id="btn-whatsapp-termo" class="botao whatsapp" target="_blank">📲 Enviar por WhatsApp</a>
+      </div>
     </section>
 
     <section class="cartao">
