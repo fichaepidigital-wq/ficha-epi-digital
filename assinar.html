@@ -1,0 +1,250 @@
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbzd2jPUr--lqprwdBScKZAWqKvXP7aj6WTyj5gUT89OUull-QpRWgBcTHJKZuZpiMyJgA/exec',
+  GOOGLE_CLIENT_ID: '406812906332-a8h8m1hl1bntebgd5vhaqnijpo38k24f.apps.googleusercontent.com'
+};
+
+const params = new URLSearchParams(window.location.search);
+const fichaId = params.get('id');
+
+let ficha = null;
+let googleIdToken = null;
+let emailLogado = null;
+let biometriaVerificada = false;
+let tracoPontos = [];
+let desenhando = false;
+let geolocalizacao = null;
+
+/* ---------------------- CARREGAR A FICHA ---------------------- */
+
+async function carregarFicha() {
+  if (!fichaId) {
+    document.getElementById('carregando').textContent = '⚠️ Link inválido: nenhuma ficha informada.';
+    return;
+  }
+  try {
+    const res = await fetch(`${CONFIG.API_URL}?action=ficha&id=${encodeURIComponent(fichaId)}`);
+    ficha = await res.json();
+
+    if (!ficha) {
+      document.getElementById('carregando').textContent = '⚠️ Ficha não encontrada. Peça um novo link ao RH.';
+      return;
+    }
+    if (ficha.status === 'Assinada') {
+      document.getElementById('carregando').textContent = '✅ Esta ficha já foi assinada anteriormente. Nada a fazer.';
+      return;
+    }
+
+    document.getElementById('subtitulo-ficha').textContent = `Olá, ${ficha.funcionarioNome}!`;
+    const itens = JSON.parse(ficha.itens);
+    const lista = document.getElementById('lista-itens-ficha');
+    lista.innerHTML = itens.map(i => `<li>${i.nome} (CA ${i.ca})</li>`).join('');
+
+    document.getElementById('carregando').style.display = 'none';
+    document.getElementById('conteudo-ficha').style.display = 'block';
+    initGoogleSignIn();
+  } catch (err) {
+    document.getElementById('carregando').textContent = '⚠️ Erro ao carregar a ficha: ' + err.message;
+  }
+}
+
+/* ---------------------- ETAPA 1: LOGIN COM GOOGLE ---------------------- */
+
+function initGoogleSignIn() {
+  if (!window.google || !google.accounts) {
+    setTimeout(initGoogleSignIn, 300);
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: CONFIG.GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('g_id_signin'),
+    { theme: 'outline', size: 'large', text: 'signin_with', width: 280 }
+  );
+}
+
+function decodeJwt_(token) {
+  const payload = token.split('.')[1];
+  const normalizado = payload.replace(/-/g, '+').replace(/_/g, '/');
+  return JSON.parse(atob(normalizado));
+}
+
+function handleCredentialResponse(response) {
+  googleIdToken = response.credential;
+  const dados = decodeJwt_(googleIdToken);
+  emailLogado = dados.email;
+
+  document.getElementById('status-login').textContent = `✅ Logado como ${emailLogado}`;
+  document.getElementById('etapa-login').classList.add('concluida');
+  document.getElementById('etapa-login').classList.remove('ativa');
+  document.getElementById('etapa-biometria').classList.add('ativa');
+}
+
+/* ---------------------- ETAPA 2: BIOMETRIA DO APARELHO (WEBAUTHN) ---------------------- */
+
+document.getElementById('btn-biometria').addEventListener('click', async () => {
+  const status = document.getElementById('status-biometria');
+  if (!googleIdToken) {
+    status.textContent = '⚠️ Faça login com o Google primeiro.';
+    return;
+  }
+  if (!window.PublicKeyCredential) {
+    status.textContent = '⚠️ Este navegador não suporta biometria do aparelho. Você pode prosseguir só com a assinatura no campo abaixo.';
+    liberarEtapaAssinatura_();
+    return;
+  }
+
+  try {
+    const challenge = new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+    const userId = new Uint8Array(16);
+    crypto.getRandomValues(userId);
+
+    await navigator.credentials.create({
+      publicKey: {
+        challenge: challenge,
+        rp: { name: 'Ficha de EPI Digital' },
+        user: { id: userId, name: emailLogado, displayName: ficha.funcionarioNome },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 60000
+      }
+    });
+
+    biometriaVerificada = true;
+    status.textContent = '✅ Biometria confirmada';
+    document.getElementById('etapa-biometria').classList.add('concluida');
+    liberarEtapaAssinatura_();
+  } catch (err) {
+    status.textContent = '⚠️ Não foi possível confirmar a biometria (' + err.message + '). Tente novamente.';
+  }
+});
+
+function liberarEtapaAssinatura_() {
+  document.getElementById('etapa-biometria').classList.remove('ativa');
+  document.getElementById('etapa-assinatura').classList.add('ativa');
+  document.getElementById('btn-enviar').disabled = false;
+}
+
+/* ---------------------- ETAPA 3: ASSINATURA (TRAÇO DINÂMICO) ---------------------- */
+
+const canvas = document.getElementById('signature-pad');
+const ctx = canvas.getContext('2d');
+
+function ajustarCanvas() {
+  const proporcao = window.devicePixelRatio || 1;
+  const largura = canvas.offsetWidth;
+  const altura = canvas.offsetHeight;
+  canvas.width = largura * proporcao;
+  canvas.height = altura * proporcao;
+  ctx.scale(proporcao, proporcao);
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#1a1a2e';
+}
+window.addEventListener('resize', ajustarCanvas);
+ajustarCanvas();
+
+function posicaoRelativa(evento) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: +(evento.clientX - rect.left).toFixed(2),
+    y: +(evento.clientY - rect.top).toFixed(2),
+    p: evento.pressure && evento.pressure > 0 ? evento.pressure : 0.5,
+    t: Date.now()
+  };
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  desenhando = true;
+  const pos = posicaoRelativa(e);
+  tracoPontos.push({ ...pos, tipo: 'start' });
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  if (!desenhando) return;
+  const pos = posicaoRelativa(e);
+  tracoPontos.push({ ...pos, tipo: 'move' });
+  ctx.lineWidth = 1.5 + pos.p * 2.5;
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+});
+
+['pointerup', 'pointerleave', 'pointercancel'].forEach(evt =>
+  canvas.addEventListener(evt, () => { desenhando = false; })
+);
+
+document.getElementById('btn-limpar').addEventListener('click', () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  tracoPontos = [];
+});
+
+document.getElementById('btn-geo').addEventListener('click', () => {
+  if (!navigator.geolocation) return alert('Geolocalização não suportada neste dispositivo');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      geolocalizacao = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      document.getElementById('status-geo').textContent = '📍 Localização capturada';
+    },
+    () => { document.getElementById('status-geo').textContent = '⚠️ Localização não autorizada'; }
+  );
+});
+
+/* ---------------------- ENVIO FINAL ---------------------- */
+
+document.getElementById('btn-enviar').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-enviar');
+
+  if (!googleIdToken) return alert('Faça login com o Google primeiro');
+  if (tracoPontos.length < 5) return alert('Assine no campo indicado antes de concluir');
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const payload = {
+    action: 'assinarFicha',
+    id: fichaId,
+    googleIdToken,
+    webauthnVerificado: biometriaVerificada,
+    assinaturaPng: canvas.toDataURL('image/png'),
+    traco: tracoPontos,
+    geo: geolocalizacao,
+    dispositivo: {
+      userAgent: navigator.userAgent,
+      tela: `${screen.width}x${screen.height}`
+    }
+  };
+
+  try {
+    const res = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    const resultado = await res.json();
+
+    if (resultado.success) {
+      document.getElementById('resultado').innerHTML = `
+        ✅ Ficha assinada com sucesso!<br>
+        Hash de integridade: <code>${resultado.hash}</code><br>
+        ${resultado.pdfUrl ? `<a href="${resultado.pdfUrl}" target="_blank">Ver PDF da ficha</a>` : ''}
+      `;
+      document.getElementById('etapa-assinatura').classList.remove('ativa');
+      btn.style.display = 'none';
+    } else {
+      alert('Erro: ' + resultado.error);
+      btn.disabled = false;
+      btn.textContent = 'Concluir e Assinar Ficha';
+    }
+  } catch (err) {
+    alert('Falha ao enviar: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Concluir e Assinar Ficha';
+  }
+});
+
+carregarFicha();
