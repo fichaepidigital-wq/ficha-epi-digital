@@ -28,7 +28,14 @@
 
       <section class="cartao">
         <h2>2. Itens de EPI entregues</h2>
-        <div id="lista-epis" class="lista-epis">Carregando...</div>
+        <div class="tabela-itens-epi">
+          <div class="linha-item-epi cabecalho">
+            <span>EPI</span><span>CA</span><span></span>
+          </div>
+          <div id="linhas-itens-epi"></div>
+        </div>
+        <button type="button" id="btn-add-item" class="botao secundario">+ Adicionar item</button>
+        <datalist id="lista-nomes-epi"></datalist>
       </section>
 
       <button type="submit" id="btn-gerar" class="botao primario">Gerar link de assinatura</button>
