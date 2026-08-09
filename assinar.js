@@ -19,6 +19,7 @@ let ficha = null;
 let googleIdToken = null;
 let emailLogado = null;
 let biometriaVerificada = false;
+let aceiteTermo = false;
 let tracoPontos = [];
 let desenhando = false;
 let geolocalizacao = null;
@@ -49,11 +50,15 @@ async function carregarFicha() {
       document.getElementById('titulo-pagina').textContent = '📄 Termo de Responsabilidade';
       document.getElementById('secao-termo').style.display = 'block';
       document.getElementById('texto-termo').innerHTML = TEXTO_TERMO.map(p => `<p>${p}</p>`).join('');
+
+      document.getElementById('etapa-login').classList.remove('ativa');
+      configurarAceiteTermo_();
     } else {
       document.getElementById('titulo-pagina').textContent = '📋 Ficha de Entrega de EPI';
       document.getElementById('secao-itens').style.display = 'block';
       const itens = JSON.parse(ficha.itens || '[]');
       document.getElementById('lista-itens-ficha').innerHTML = itens.map(i => `<li>${i.nome} (CA ${i.ca})</li>`).join('');
+      aceiteTermo = true;
     }
 
     document.getElementById('carregando').style.display = 'none';
@@ -62,6 +67,36 @@ async function carregarFicha() {
   } catch (err) {
     document.getElementById('carregando').textContent = '⚠️ Erro ao carregar a ficha: ' + err.message;
   }
+}
+
+/* ---------------------- ACEITE DO TERMO (rolagem obrigatória) ---------------------- */
+
+function configurarAceiteTermo_() {
+  const textoBox = document.getElementById('texto-termo');
+  const checkbox = document.getElementById('check-aceite');
+  const label = document.getElementById('texto-aceite');
+
+  textoBox.addEventListener('scroll', () => {
+    const chegouAoFim = textoBox.scrollTop + textoBox.clientHeight >= textoBox.scrollHeight - 10;
+    if (chegouAoFim && checkbox.disabled) {
+      checkbox.disabled = false;
+      label.textContent = 'Li e aceito o Termo de Responsabilidade acima';
+    }
+  });
+
+  if (textoBox.scrollHeight <= textoBox.clientHeight + 10) {
+    checkbox.disabled = false;
+    label.textContent = 'Li e aceito o Termo de Responsabilidade acima';
+  }
+
+  checkbox.addEventListener('change', () => {
+    aceiteTermo = checkbox.checked;
+    if (aceiteTermo) {
+      document.getElementById('etapa-login').classList.add('ativa');
+    } else {
+      document.getElementById('etapa-login').classList.remove('ativa');
+    }
+  });
 }
 
 /* ---------------------- ETAPA 1: LOGIN COM GOOGLE ---------------------- */
@@ -88,6 +123,10 @@ function decodeJwt_(token) {
 }
 
 function handleCredentialResponse(response) {
+  if (!aceiteTermo) {
+    document.getElementById('status-login').textContent = '⚠️ Aceite o termo antes de continuar.';
+    return;
+  }
   googleIdToken = response.credential;
   const dados = decodeJwt_(googleIdToken);
   emailLogado = dados.email;
@@ -227,6 +266,7 @@ document.getElementById('btn-enviar').addEventListener('click', async () => {
     id: fichaId,
     googleIdToken,
     webauthnVerificado: biometriaVerificada,
+    aceiteTermo: aceiteTermo,
     assinaturaPng: canvas.toDataURL('image/png'),
     traco: tracoPontos,
     geo: geolocalizacao,
