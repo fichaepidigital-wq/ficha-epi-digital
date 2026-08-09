@@ -140,7 +140,7 @@ select, input[type="text"], input[type="tel"], input[type="email"] {
 .tabela-itens-epi { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .linha-item-epi {
   display: grid;
-  grid-template-columns: 2fr 1fr 32px;
+  grid-template-columns: 2fr 1fr 80px 32px;
   gap: 8px;
   align-items: center;
 }
@@ -150,11 +150,16 @@ select, input[type="text"], input[type="tel"], input[type="email"] {
   color: var(--texto-suave);
   padding: 0 2px;
 }
-.linha-item-epi input {
+.linha-item-epi input[type="text"] {
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid var(--borda);
   font-size: 0.95rem;
+}
+.linha-item-epi input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  justify-self: center;
 }
 .btn-remover-item {
   background: none;
