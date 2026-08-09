@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de EPI Digital</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topo">
+    <h1>📋 Ficha de EPI Digital</h1>
+    <p>Registro de entrega de Equipamento de Proteção Individual com assinatura biométrica</p>
+  </header>
+
+  <main class="container">
+    <form id="form-ficha">
+
+      <section class="cartao">
+        <h2>1. Funcionário</h2>
+        <label for="select-funcionario">Selecione o funcionário</label>
+        <select id="select-funcionario" required>
+          <option value="">Carregando...</option>
+        </select>
+      </section>
+
+      <section class="cartao">
+        <h2>2. Itens de EPI entregues</h2>
+        <div id="lista-epis" class="lista-epis">Carregando...</div>
+      </section>
+
+      <section class="cartao">
+        <h2>3. Assinatura biométrica</h2>
+        <p class="ajuda">
+          Assine com o dedo, caneta digital ou mouse no campo abaixo. O sistema
+          registra também a dinâmica do traço (velocidade, pressão e geometria)
+          como dado biométrico complementar.
+        </p>
+        <canvas id="signature-pad"></canvas>
+        <div class="acoes-assinatura">
+          <button type="button" id="btn-limpar" class="botao secundario">Limpar</button>
+          <button type="button" id="btn-geo" class="botao secundario">📍 Capturar localização (opcional)</button>
+          <span id="status-geo" class="status-geo"></span>
+        </div>
+      </section>
+
+      <button type="submit" id="btn-enviar" class="botao primario">Assinar e Registrar Entrega</button>
+
+      <div id="resultado" class="resultado"></div>
+    </form>
+  </main>
+
+  <footer class="rodape">
+    Projeto gratuito — Backend: Google Apps Script + Google Drive · Frontend: GitHub Pages
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
