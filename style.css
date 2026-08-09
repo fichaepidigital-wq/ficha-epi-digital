@@ -498,12 +498,12 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
   flex-shrink: 0;
 }
 .brand-icon svg { width: 20px; height: 20px; }
-.brand-name { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.brand-name { font-size: 1.25rem; font-weight: 700; color: #fff; }
 .brand-name strong { color: #8b93ff; }
 
 .sidebar-label {
   display: block;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #6b7492;
@@ -520,9 +520,9 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
   border: none;
   color: #c7c9d9;
   text-decoration: none;
-  padding: 11px 12px;
+  padding: 12px 12px;
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   margin-bottom: 2px;
@@ -530,7 +530,7 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
 }
 .sidebar-link:hover { background: rgba(255,255,255,0.07); color: #fff; }
 .sidebar-link.ativo { background: var(--primary); color: #fff; font-weight: 600; }
-.sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sidebar-link svg { width: 19px; height: 19px; flex-shrink: 0; }
 
 .sidebar-footer-card {
   margin-top: auto;
@@ -539,8 +539,8 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
   padding: 16px;
 }
 .sidebar-footer-card svg { color: #8b93ff; width: 20px; height: 20px; margin-bottom: 8px; }
-.sidebar-footer-card strong { display: block; color: #fff; font-size: 0.84rem; margin-bottom: 6px; }
-.sidebar-footer-card p { font-size: 0.76rem; color: #9aa1c2; margin: 0; line-height: 1.45; }
+.sidebar-footer-card strong { display: block; color: #fff; font-size: 0.92rem; margin-bottom: 6px; }
+.sidebar-footer-card p { font-size: 0.84rem; color: #9aa1c2; margin: 0; line-height: 1.45; }
 
 /* ---- Área principal ---- */
 .main-area {
@@ -571,8 +571,8 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
   flex-shrink: 0;
 }
 .title-icon svg { width: 24px; height: 24px; }
-.topbar h1 { margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--text, var(--azul)); }
-.topbar p { margin: 2px 0 0; color: var(--texto-suave); font-size: 0.9rem; }
+.topbar h1 { margin: 0; font-size: 1.85rem; font-weight: 700; color: var(--text, var(--azul)); }
+.topbar p { margin: 2px 0 0; color: var(--texto-suave); font-size: 1rem; }
 
 .user-menu {
   display: flex;
@@ -583,27 +583,27 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
   border-radius: 12px;
   padding: 10px 16px;
   font-weight: 600;
-  font-size: 0.86rem;
+  font-size: 0.95rem;
   color: var(--azul);
   flex-shrink: 0;
 }
-.user-menu svg { width: 16px; height: 16px; }
+.user-menu svg { width: 17px; height: 17px; }
 
 .tabs-nav { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
 .tab-link {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 11px 20px;
+  padding: 12px 22px;
   border-radius: 12px;
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.96rem;
   text-decoration: none;
   border: 1px solid var(--borda);
   background: var(--surface);
   color: var(--azul);
 }
-.tab-link svg { width: 16px; height: 16px; }
+.tab-link svg { width: 17px; height: 17px; }
 .tab-link.ativa { background: var(--primary); border-color: var(--primary); color: #fff; }
 .tab-link:not(.ativa):hover { border-color: var(--primary); }
 
@@ -636,19 +636,19 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
   margin-bottom: 16px;
 }
 .card-info-lateral .icone-grande svg { width: 24px; height: 24px; }
-.card-info-lateral h3 { margin: 0 0 8px; font-size: 1.05rem; color: var(--azul); }
-.card-info-lateral p { margin: 0; color: var(--texto-suave); font-size: 0.84rem; line-height: 1.55; }
+.card-info-lateral h3 { margin: 0 0 8px; font-size: 1.15rem; color: var(--azul); }
+.card-info-lateral p { margin: 0; color: var(--texto-suave); font-size: 0.92rem; line-height: 1.55; }
 
 .card-conteudo { flex: 1; padding: 36px 40px; min-width: 0; box-sizing: border-box; }
 .card-conteudo > h2 {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   margin: 0 0 26px;
   color: var(--azul);
 }
-.card-conteudo > h2 svg { width: 20px; height: 20px; color: var(--primary); }
+.card-conteudo > h2 svg { width: 22px; height: 22px; color: var(--primary); }
 
 @media (max-width: 900px) {
   .card-principal { flex-direction: column; }
@@ -670,6 +670,8 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
 }
 .campo-icone input { padding-left: 42px !important; }
 
+.main-area label { font-size: 0.95rem; }
+
 .main-area input[type="text"],
 .main-area input[type="email"],
 .main-area input[type="tel"],
@@ -679,7 +681,7 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
   border-radius: 12px;
   border: 1.5px solid var(--borda);
   padding: 0 16px;
-  font-size: 0.92rem;
+  font-size: 1rem;
   transition: border-color .15s, box-shadow .15s;
 }
 .main-area input:focus,
@@ -696,8 +698,10 @@ body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial
   height: 54px;
   border-radius: 12px;
   font-weight: 700;
+  font-size: 1.05rem;
 }
-.main-area .botao.primario svg { width: 18px; height: 18px; }
+.main-area .botao.primario svg { width: 19px; height: 19px; }
+.main-area .ajuda { font-size: 0.94rem; }
 
 .rodape-app {
   text-align: center;
