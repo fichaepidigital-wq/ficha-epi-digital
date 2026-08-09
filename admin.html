@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de EPI Digital — Administração</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topo">
+    <h1>⚙️ Área Administrativa</h1>
+    <p>Cadastro de funcionários, histórico e exportação de fichas</p>
+    <nav class="nav-topo"><a href="index.html">📋 Gerar nova ficha</a></nav>
+  </header>
+
+  <main class="container">
+
+    <section class="cartao">
+      <h2>Cadastrar novo funcionário</h2>
+      <form id="form-funcionario">
+        <div class="grid-2">
+          <div>
+            <label for="f-nome">Nome completo</label>
+            <input type="text" id="f-nome" required>
+          </div>
+          <div>
+            <label for="f-cargo">Cargo</label>
+            <input type="text" id="f-cargo">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label for="f-setor">Setor</label>
+            <input type="text" id="f-setor">
+          </div>
+          <div>
+            <label for="f-matricula">Matrícula</label>
+            <input type="text" id="f-matricula">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label for="f-telefone">Telefone (com DDD)</label>
+            <input type="tel" id="f-telefone" placeholder="13996559306">
+          </div>
+          <div>
+            <label for="f-cpf">CPF</label>
+            <input type="text" id="f-cpf">
+          </div>
+        </div>
+        <label for="f-email">E-mail Google (obrigatório para assinar)</label>
+        <input type="email" id="f-email" required placeholder="funcionario@gmail.com">
+        <br><br>
+        <button type="submit" class="botao primario">Cadastrar funcionário</button>
+      </form>
+      <div id="resultado-cadastro" class="resultado"></div>
+    </section>
+
+    <section class="cartao">
+      <h2>Funcionários cadastrados</h2>
+      <table class="tabela-funcionarios">
+        <thead>
+          <tr><th>Nome</th><th>Cargo</th><th>Ações</th></tr>
+        </thead>
+        <tbody id="corpo-tabela-funcionarios">
+          <tr><td colspan="3">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="cartao" id="secao-historico" style="display:none;">
+      <h2 id="titulo-historico">Histórico</h2>
+      <button type="button" id="btn-exportar-zip" class="botao secundario">📦 Exportar todas em PDF (.zip)</button>
+      <p id="status-exportar" class="ajuda"></p>
+      <div id="lista-historico"></div>
+    </section>
+
+  </main>
+
+  <footer class="rodape">
+    Ficha de EPI Digital — Área administrativa
+  </footer>
+
+  <script src="admin.js"></script>
+</body>
+</html>
