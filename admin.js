@@ -5,6 +5,17 @@ const CONFIG = {
 let funcionariosCache = [];
 let funcionarioSelecionadoId = null;
 
+/* ---------------------- NAVEGAÇÃO DO MENU LATERAL ---------------------- */
+
+document.querySelectorAll('.sidebar-item').forEach(botao => {
+  botao.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('ativo'));
+    document.querySelectorAll('.painel').forEach(p => p.style.display = 'none');
+    botao.classList.add('ativo');
+    document.getElementById(botao.dataset.painel).style.display = 'block';
+  });
+});
+
 /* ---------------------- CADASTRO DE FUNCIONÁRIO ---------------------- */
 
 document.getElementById('form-funcionario').addEventListener('submit', async (e) => {
@@ -65,7 +76,6 @@ function mostrarLinkTermo_(termoId, nome, telefone) {
     : `https://wa.me/?text=${mensagem}`;
 
   document.getElementById('resultado-termo').style.display = 'block';
-  document.getElementById('resultado-termo').scrollIntoView({ behavior: 'smooth' });
 }
 
 document.getElementById('btn-copiar-termo').addEventListener('click', () => {
@@ -77,7 +87,7 @@ document.getElementById('btn-copiar-termo').addEventListener('click', () => {
   setTimeout(() => { btn.textContent = 'Copiar'; }, 1500);
 });
 
-/* ---------------------- LISTAGEM DE FUNCIONÁRIOS ---------------------- */
+/* ---------------------- LISTAGEM E EDIÇÃO DE FUNCIONÁRIOS ---------------------- */
 
 async function carregarFuncionarios() {
   const res = await fetch(`${CONFIG.API_URL}?action=funcionarios`);
@@ -85,19 +95,60 @@ async function carregarFuncionarios() {
   const corpo = document.getElementById('corpo-tabela-funcionarios');
 
   if (!funcionariosCache.length) {
-    corpo.innerHTML = '<tr><td colspan="3">Nenhum funcionário cadastrado ainda.</td></tr>';
+    corpo.innerHTML = '<tr><td colspan="4">Nenhum funcionário cadastrado ainda.</td></tr>';
     return;
   }
 
   corpo.innerHTML = funcionariosCache.map(f => `
-    <tr>
+    <tr data-id="${f.id}">
       <td>${f.nome}</td>
-      <td>${f.cargo || '-'}</td>
+      <td>
+        <input type="email" class="editavel" value="${f.email || ''}" data-campo="email">
+      </td>
+      <td>
+        <select class="editavel" data-campo="status">
+          <option value="Ativo" ${f.status !== 'Inativo' ? 'selected' : ''}>Ativo</option>
+          <option value="Inativo" ${f.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
+        </select>
+      </td>
       <td class="linha-acoes">
-        <button type="button" class="botao secundario" onclick="verHistorico('${f.id}')">Ver histórico</button>
+        <button type="button" class="botao secundario" onclick="salvarEdicaoFuncionario('${f.id}')">Salvar</button>
+        <button type="button" class="botao secundario" onclick="verHistorico('${f.id}')">Histórico</button>
       </td>
     </tr>
   `).join('');
+}
+
+async function salvarEdicaoFuncionario(funcionarioId) {
+  const linha = document.querySelector(`tr[data-id="${funcionarioId}"]`);
+  const email = linha.querySelector('[data-campo="email"]').value;
+  const status = linha.querySelector('[data-campo="status"]').value;
+  const botao = linha.querySelector('.linha-acoes button');
+
+  botao.disabled = true;
+  botao.textContent = 'Salvando...';
+
+  try {
+    const res = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'editarFuncionario', id: funcionarioId, email, status })
+    });
+    const resultado = await res.json();
+    if (resultado.success) {
+      botao.textContent = '✅ Salvo';
+      setTimeout(() => { botao.textContent = 'Salvar'; botao.disabled = false; }, 1500);
+      carregarFuncionarios();
+    } else {
+      alert('Erro: ' + resultado.error);
+      botao.disabled = false;
+      botao.textContent = 'Salvar';
+    }
+  } catch (err) {
+    alert('Falha ao salvar: ' + err.message);
+    botao.disabled = false;
+    botao.textContent = 'Salvar';
+  }
 }
 
 /* ---------------------- HISTÓRICO DE FICHAS ---------------------- */
