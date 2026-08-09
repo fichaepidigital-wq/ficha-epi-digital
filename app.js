@@ -2,87 +2,30 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbzd2jPUr--lqprwdBScKZAWqKvXP7aj6WTyj5gUT89OUull-QpRWgBcTHJKZuZpiMyJgA/exec'
 };
 
-let tracoPontos = [];
-let desenhando = false;
-let geolocalizacao = null;
-
-const canvas = document.getElementById('signature-pad');
-const ctx = canvas.getContext('2d');
-
-function ajustarCanvas() {
-  const proporcao = window.devicePixelRatio || 1;
-  const largura = canvas.offsetWidth;
-  const altura = canvas.offsetHeight;
-  canvas.width = largura * proporcao;
-  canvas.height = altura * proporcao;
-  ctx.scale(proporcao, proporcao);
-  ctx.lineWidth = 2.2;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = '#1a1a2e';
-}
-window.addEventListener('resize', ajustarCanvas);
-ajustarCanvas();
-
-function posicaoRelativa(evento) {
-  const rect = canvas.getBoundingClientRect();
-  return {
-    x: +(evento.clientX - rect.left).toFixed(2),
-    y: +(evento.clientY - rect.top).toFixed(2),
-    p: evento.pressure && evento.pressure > 0 ? evento.pressure : 0.5,
-    t: Date.now()
-  };
-}
-
-canvas.addEventListener('pointerdown', (e) => {
-  desenhando = true;
-  const pos = posicaoRelativa(e);
-  tracoPontos.push({ ...pos, tipo: 'start' });
-  ctx.beginPath();
-  ctx.moveTo(pos.x, pos.y);
-});
-
-canvas.addEventListener('pointermove', (e) => {
-  if (!desenhando) return;
-  const pos = posicaoRelativa(e);
-  tracoPontos.push({ ...pos, tipo: 'move' });
-  ctx.lineWidth = 1.5 + pos.p * 2.5;
-  ctx.lineTo(pos.x, pos.y);
-  ctx.stroke();
-});
-
-['pointerup', 'pointerleave', 'pointercancel'].forEach(evt =>
-  canvas.addEventListener(evt, () => { desenhando = false; })
-);
-
-document.getElementById('btn-limpar').addEventListener('click', () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  tracoPontos = [];
-});
-
-document.getElementById('btn-geo').addEventListener('click', () => {
-  if (!navigator.geolocation) return alert('Geolocalização não suportada neste dispositivo');
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      geolocalizacao = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      document.getElementById('status-geo').textContent = '📍 Localização capturada';
-    },
-    () => { document.getElementById('status-geo').textContent = '⚠️ Localização não autorizada'; }
-  );
-});
+let funcionariosCache = [];
 
 async function carregarFuncionarios() {
   const res = await fetch(`${CONFIG.API_URL}?action=funcionarios`);
-  const dados = await res.json();
+  funcionariosCache = await res.json();
   const select = document.getElementById('select-funcionario');
   select.innerHTML = '<option value="">Selecione...</option>';
-  dados.forEach(f => {
+  funcionariosCache.forEach(f => {
     const opt = document.createElement('option');
     opt.value = f.id;
     opt.textContent = `${f.nome} — ${f.cargo || ''}`;
     select.appendChild(opt);
   });
 }
+
+document.getElementById('select-funcionario').addEventListener('change', (e) => {
+  const funcionario = funcionariosCache.find(f => f.id === e.target.value);
+  const aviso = document.getElementById('aviso-email');
+  if (funcionario && !funcionario.email) {
+    aviso.textContent = '⚠️ Este funcionário não tem e-mail Google cadastrado. Cadastre em "Área administrativa" antes de gerar a ficha.';
+  } else {
+    aviso.textContent = '';
+  }
+});
 
 async function carregarEpis() {
   const res = await fetch(`${CONFIG.API_URL}?action=epis`);
@@ -110,57 +53,60 @@ function coletarItensSelecionados() {
 
 document.getElementById('form-ficha').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const btn = document.getElementById('btn-enviar');
+  const btn = document.getElementById('btn-gerar');
   const funcionarioId = document.getElementById('select-funcionario').value;
+  const funcionario = funcionariosCache.find(f => f.id === funcionarioId);
   const itens = coletarItensSelecionados();
 
   if (!funcionarioId) return alert('Selecione o funcionário');
+  if (!funcionario.email) return alert('Este funcionário precisa ter um e-mail Google cadastrado antes de gerar a ficha.');
   if (!itens.length) return alert('Selecione ao menos um EPI');
-  if (tracoPontos.length < 5) return alert('Colete a assinatura no campo indicado');
 
   btn.disabled = true;
-  btn.textContent = 'Enviando...';
-
-  const payload = {
-    action: 'criarFicha',
-    funcionarioId,
-    itens,
-    assinaturaPng: canvas.toDataURL('image/png'),
-    traco: tracoPontos,
-    geo: geolocalizacao,
-    dispositivo: {
-      userAgent: navigator.userAgent,
-      tela: `${screen.width}x${screen.height}`
-    }
-  };
+  btn.textContent = 'Gerando...';
 
   try {
     const res = await fetch(CONFIG.API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ action: 'criarFichaPendente', funcionarioId, itens })
     });
     const resultado = await res.json();
 
     if (resultado.success) {
-      document.getElementById('resultado').innerHTML = `
-        ✅ Ficha registrada com sucesso!<br>
-        ID: ${resultado.id}<br>
-        Hash de integridade: <code>${resultado.hash}</code><br>
-        ${resultado.pdfUrl ? `<a href="${resultado.pdfUrl}" target="_blank">Baixar PDF da ficha</a>` : ''}
-      `;
+      const link = `${window.location.origin}${window.location.pathname.replace('index.html', '')}assinar.html?id=${resultado.id}`;
+      document.getElementById('input-link').value = link;
+
+      const mensagem = encodeURIComponent(
+        `Olá ${funcionario.nome}! Por favor, acesse o link abaixo no seu celular para assinar a ficha de entrega de EPI:\n${link}`
+      );
+      const telefone = (funcionario.telefone || '').replace(/\D/g, '');
+      document.getElementById('btn-whatsapp').href = telefone
+        ? `https://wa.me/55${telefone}?text=${mensagem}`
+        : `https://wa.me/?text=${mensagem}`;
+
+      document.getElementById('resultado-link').style.display = 'block';
+      document.getElementById('resultado-link').scrollIntoView({ behavior: 'smooth' });
       e.target.reset();
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      tracoPontos = [];
+      document.getElementById('aviso-email').textContent = '';
     } else {
       alert('Erro: ' + resultado.error);
     }
   } catch (err) {
-    alert('Falha ao enviar: ' + err.message);
+    alert('Falha ao gerar ficha: ' + err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Assinar e Registrar Entrega';
+    btn.textContent = 'Gerar link de assinatura';
   }
+});
+
+document.getElementById('btn-copiar').addEventListener('click', () => {
+  const input = document.getElementById('input-link');
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  const btn = document.getElementById('btn-copiar');
+  btn.textContent = 'Copiado!';
+  setTimeout(() => { btn.textContent = 'Copiar'; }, 1500);
 });
 
 carregarFuncionarios();
