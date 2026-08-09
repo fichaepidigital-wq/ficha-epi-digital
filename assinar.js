@@ -49,7 +49,9 @@ async function carregarFicha() {
     if (ficha.tipo === 'Termo') {
       document.getElementById('titulo-pagina').textContent = '📄 Termo de Responsabilidade';
       document.getElementById('secao-termo').style.display = 'block';
-      document.getElementById('texto-termo').innerHTML = TEXTO_TERMO.map(p => `<p>${p}</p>`).join('');
+      document.getElementById('texto-termo').innerHTML =
+        TEXTO_TERMO.map(p => `<p>${p}</p>`).join('') +
+        '<div id="fim-termo" style="height:1px;"></div>';
 
       document.getElementById('etapa-login').classList.remove('ativa');
       configurarAceiteTermo_();
@@ -75,18 +77,32 @@ function configurarAceiteTermo_() {
   const textoBox = document.getElementById('texto-termo');
   const checkbox = document.getElementById('check-aceite');
   const label = document.getElementById('texto-aceite');
+  const sentinela = document.getElementById('fim-termo');
 
-  textoBox.addEventListener('scroll', () => {
-    const chegouAoFim = textoBox.scrollTop + textoBox.clientHeight >= textoBox.scrollHeight - 10;
-    if (chegouAoFim && checkbox.disabled) {
-      checkbox.disabled = false;
-      label.textContent = 'Li e aceito o Termo de Responsabilidade acima';
-    }
-  });
+  function liberarCheckbox_() {
+    checkbox.disabled = false;
+    label.textContent = 'Li, e concordo com o termo';
+  }
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entradas) => {
+      entradas.forEach((entrada) => {
+        if (entrada.isIntersecting) {
+          liberarCheckbox_();
+          observer.disconnect();
+        }
+      });
+    }, { root: textoBox, threshold: 0.99 });
+    observer.observe(sentinela);
+  } else {
+    textoBox.addEventListener('scroll', () => {
+      const chegouAoFim = textoBox.scrollTop + textoBox.clientHeight >= textoBox.scrollHeight - 10;
+      if (chegouAoFim && checkbox.disabled) liberarCheckbox_();
+    });
+  }
 
   if (textoBox.scrollHeight <= textoBox.clientHeight + 10) {
-    checkbox.disabled = false;
-    label.textContent = 'Li e aceito o Termo de Responsabilidade acima';
+    liberarCheckbox_();
   }
 
   checkbox.addEventListener('change', () => {
