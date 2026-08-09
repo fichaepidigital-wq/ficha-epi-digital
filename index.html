@@ -4,64 +4,104 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Registro de EPI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-  <header class="topo">
-    <h1>📋 Registro de EPI</h1>
-    <p>Gerar link de assinatura para o funcionário</p>
-    <nav class="nav-abas">
-      <a href="index.html" class="aba ativa">📋 Registro de EPI</a>
-      <a href="admin.html" class="aba">👥 Cadastro de Funcionário</a>
-    </nav>
-  </header>
+<div class="app-shell">
 
-  <main class="container">
-    <form id="form-ficha">
-
-      <section class="cartao">
-        <h2>1. Funcionário</h2>
-        <label for="select-funcionario">Selecione o funcionário</label>
-        <select id="select-funcionario" required>
-          <option value="">Carregando...</option>
-        </select>
-        <p class="ajuda" id="aviso-email"></p>
-      </section>
-
-      <section class="cartao">
-        <h2>2. Itens de EPI entregues</h2>
-        <div class="tabela-itens-epi">
-          <div class="linha-item-epi cabecalho">
-            <span>EPI</span><span>CA</span><span>Devolução</span><span></span>
-          </div>
-          <div id="linhas-itens-epi"></div>
-        </div>
-        <p class="ajuda">Caso o EPI não possua CA (Certificado de Aprovação), digite <strong>N/A</strong> no campo.</p>
-        <button type="button" id="btn-add-item" class="botao secundario">+ Adicionar item</button>
-        <datalist id="lista-nomes-epi"></datalist>
-      </section>
-
-      <button type="submit" id="btn-gerar" class="botao primario">Gerar link de assinatura</button>
-    </form>
-
-    <div id="resultado-link" class="cartao resultado-link" style="display:none;">
-      <h2>✅ Ficha criada — pendente de assinatura</h2>
-      <p>Envie este link para o celular do funcionário assinar:</p>
-      <div class="campo-link">
-        <input type="text" id="input-link" readonly>
-        <button type="button" id="btn-copiar" class="botao secundario">Copiar</button>
-      </div>
-      <a id="btn-whatsapp" class="botao whatsapp" target="_blank">📲 Enviar por WhatsApp</a>
-      <button type="button" id="btn-cancelar-ficha" class="botao cancelar">🗑️ Cancelar esta ficha (foi criada por engano)</button>
-      <p id="status-cancelamento" class="ajuda"></p>
+  <aside class="sidebar-nova">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i data-lucide="shield-check"></i></div>
+      <span class="brand-name">Ficha<strong>EPI</strong></span>
     </div>
-  </main>
 
-  <footer class="rodape">
-    Projeto gratuito — Backend: Google Apps Script + Google Drive · Frontend: GitHub Pages
-  </footer>
+    <span class="sidebar-label">Menu</span>
+    <a href="index.html" class="sidebar-link ativo"><i data-lucide="clipboard-list"></i> Registro de EPI</a>
+    <a href="admin.html" class="sidebar-link"><i data-lucide="users"></i> Cadastro de Funcionário</a>
 
-  <script src="app.js"></script>
+    <div class="sidebar-footer-card">
+      <i data-lucide="shield"></i>
+      <strong>Segurança em primeiro lugar</strong>
+      <p>Toda entrega de EPI fica registrada com assinatura biométrica do funcionário.</p>
+    </div>
+  </aside>
+
+  <div class="main-area">
+
+    <header class="topbar">
+      <div class="topbar-title">
+        <div class="title-icon"><i data-lucide="clipboard-list"></i></div>
+        <div>
+          <h1>Registro de EPI</h1>
+          <p>Gerar link de assinatura para o funcionário</p>
+        </div>
+      </div>
+      <div class="user-menu"><i data-lucide="user"></i> Administrador <i data-lucide="chevron-down"></i></div>
+    </header>
+
+    <nav class="tabs-nav">
+      <a href="index.html" class="tab-link ativa"><i data-lucide="clipboard-list"></i> Registro de EPI</a>
+      <a href="admin.html" class="tab-link"><i data-lucide="users"></i> Cadastro de Funcionário</a>
+    </nav>
+
+    <main>
+      <div class="card-principal">
+        <div class="card-info-lateral">
+          <div class="icone-grande"><i data-lucide="file-check-2"></i></div>
+          <h3>Registrar entrega de EPI</h3>
+          <p>Selecione o funcionário e os itens entregues. Um link de assinatura será gerado para o celular dele.</p>
+        </div>
+        <div class="card-conteudo">
+          <form id="form-ficha">
+
+            <h2><i data-lucide="user"></i> 1. Funcionário</h2>
+            <label for="select-funcionario">Selecione o funcionário</label>
+            <select id="select-funcionario" required>
+              <option value="">Carregando...</option>
+            </select>
+            <p class="ajuda" id="aviso-email"></p>
+
+            <h2 style="margin-top:32px;"><i data-lucide="hard-hat"></i> 2. Itens de EPI entregues</h2>
+            <div class="tabela-itens-epi">
+              <div class="linha-item-epi cabecalho">
+                <span>EPI</span><span>CA</span><span>Devolução</span><span></span>
+              </div>
+              <div id="linhas-itens-epi"></div>
+            </div>
+            <p class="ajuda">Caso o EPI não possua CA (Certificado de Aprovação), digite <strong>N/A</strong> no campo.</p>
+            <button type="button" id="btn-add-item" class="botao secundario">+ Adicionar item</button>
+            <datalist id="lista-nomes-epi"></datalist>
+
+            <br><br>
+            <button type="submit" id="btn-gerar" class="botao primario"><i data-lucide="link"></i> Gerar link de assinatura</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="resultado-link" class="cartao resultado-link" style="display:none;">
+        <h2>✅ Ficha criada — pendente de assinatura</h2>
+        <p>Envie este link para o celular do funcionário assinar:</p>
+        <div class="campo-link">
+          <input type="text" id="input-link" readonly>
+          <button type="button" id="btn-copiar" class="botao secundario">Copiar</button>
+        </div>
+        <a id="btn-whatsapp" class="botao whatsapp" target="_blank">📲 Enviar por WhatsApp</a>
+        <button type="button" id="btn-cancelar-ficha" class="botao cancelar">🗑️ Cancelar esta ficha (foi criada por engano)</button>
+        <p id="status-cancelamento" class="ajuda"></p>
+      </div>
+    </main>
+  </div>
+</div>
+
+<footer class="rodape-app">
+  © 2026 FichaEPI · Sistema de Gestão de EPI
+</footer>
+
+<script src="app.js"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>
