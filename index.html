@@ -3,15 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ficha de EPI Digital — Gerar Ficha</title>
+<title>Registro de EPI</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <header class="topo">
-    <h1>📋 Ficha de EPI Digital</h1>
+    <h1>📋 Registro de EPI</h1>
     <p>Gerar link de assinatura para o funcionário</p>
-    <nav class="nav-topo"><a href="admin.html">⚙️ Área administrativa</a></nav>
+    <nav class="nav-abas">
+      <a href="index.html" class="aba ativa">📋 Registro de EPI</a>
+      <a href="admin.html" class="aba">👥 Cadastro de Funcionário</a>
+    </nav>
   </header>
 
   <main class="container">
@@ -34,6 +37,7 @@
           </div>
           <div id="linhas-itens-epi"></div>
         </div>
+        <p class="ajuda">Caso o EPI não possua CA (Certificado de Aprovação), digite <strong>N/A</strong> no campo.</p>
         <button type="button" id="btn-add-item" class="botao secundario">+ Adicionar item</button>
         <datalist id="lista-nomes-epi"></datalist>
       </section>
@@ -49,6 +53,8 @@
         <button type="button" id="btn-copiar" class="botao secundario">Copiar</button>
       </div>
       <a id="btn-whatsapp" class="botao whatsapp" target="_blank">📲 Enviar por WhatsApp</a>
+      <button type="button" id="btn-cancelar-ficha" class="botao cancelar">🗑️ Cancelar esta ficha (foi criada por engano)</button>
+      <p id="status-cancelamento" class="ajuda"></p>
     </div>
   </main>
 
