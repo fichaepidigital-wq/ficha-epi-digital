@@ -47,7 +47,7 @@ async function carregarFicha() {
     document.getElementById('subtitulo-ficha').textContent = `Olá, ${ficha.funcionarioNome}!`;
 
     if (ficha.tipo === 'Termo') {
-      document.getElementById('titulo-pagina').textContent = '📄 Termo de Responsabilidade';
+      document.getElementById('titulo-pagina').textContent = '📄 Termo de Responsabilidade NR06';
       document.getElementById('secao-termo').style.display = 'block';
       document.getElementById('texto-termo').innerHTML =
         TEXTO_TERMO.map(p => `<p>${p}</p>`).join('') +
