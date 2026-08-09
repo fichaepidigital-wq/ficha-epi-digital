@@ -13,13 +13,16 @@ document.getElementById('form-funcionario').addEventListener('submit', async (e)
   btn.disabled = true;
   btn.textContent = 'Cadastrando...';
 
+  const nome = document.getElementById('f-nome').value;
+  const telefone = document.getElementById('f-telefone').value;
+
   const payload = {
     action: 'criarFuncionario',
-    nome: document.getElementById('f-nome').value,
+    nome,
     cargo: document.getElementById('f-cargo').value,
     setor: document.getElementById('f-setor').value,
     matricula: document.getElementById('f-matricula').value,
-    telefone: document.getElementById('f-telefone').value,
+    telefone,
     cpf: document.getElementById('f-cpf').value,
     email: document.getElementById('f-email').value
   };
@@ -36,6 +39,7 @@ document.getElementById('form-funcionario').addEventListener('submit', async (e)
       document.getElementById('resultado-cadastro').innerHTML = '✅ Funcionário cadastrado com sucesso!';
       e.target.reset();
       carregarFuncionarios();
+      mostrarLinkTermo_(resultado.termoId, nome, telefone);
     } else {
       alert('Erro: ' + resultado.error);
     }
@@ -45,6 +49,32 @@ document.getElementById('form-funcionario').addEventListener('submit', async (e)
     btn.disabled = false;
     btn.textContent = 'Cadastrar funcionário';
   }
+});
+
+function mostrarLinkTermo_(termoId, nome, telefone) {
+  if (!termoId) return;
+  const link = `${window.location.origin}${window.location.pathname.replace('admin.html', '')}assinar.html?id=${termoId}`;
+  document.getElementById('input-link-termo').value = link;
+
+  const mensagem = encodeURIComponent(
+    `Olá ${nome}! Antes de receber qualquer EPI, por favor acesse o link abaixo no seu celular e assine o Termo de Responsabilidade:\n${link}`
+  );
+  const telefoneLimpo = (telefone || '').replace(/\D/g, '');
+  document.getElementById('btn-whatsapp-termo').href = telefoneLimpo
+    ? `https://wa.me/55${telefoneLimpo}?text=${mensagem}`
+    : `https://wa.me/?text=${mensagem}`;
+
+  document.getElementById('resultado-termo').style.display = 'block';
+  document.getElementById('resultado-termo').scrollIntoView({ behavior: 'smooth' });
+}
+
+document.getElementById('btn-copiar-termo').addEventListener('click', () => {
+  const input = document.getElementById('input-link-termo');
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  const btn = document.getElementById('btn-copiar-termo');
+  btn.textContent = 'Copiado!';
+  setTimeout(() => { btn.textContent = 'Copiar'; }, 1500);
 });
 
 /* ---------------------- LISTAGEM DE FUNCIONÁRIOS ---------------------- */
@@ -90,16 +120,42 @@ async function verHistorico(funcionarioId) {
     return;
   }
 
+  fichas.sort((a, b) => {
+    if (a.tipo !== b.tipo) return a.tipo === 'Termo' ? -1 : 1;
+    return new Date(b.criadoEm) - new Date(a.criadoEm);
+  });
+
   document.getElementById('lista-historico').innerHTML = fichas.map(f => {
     const itens = JSON.parse(f.itens || '[]');
-    const badgeClasse = f.status === 'Assinada' ? 'assinada' : 'pendente';
+    const badgeStatus = f.status === 'Assinada' ? 'assinada' : 'pendente';
+    const badgeTipo = f.tipo === 'Termo' ? 'termo' : 'entrega';
     const dataRef = f.status === 'Assinada' ? f.assinadoEm : f.criadoEm;
+
+    let identificadoresHtml = '';
+    if (f.status === 'Assinada') {
+      let bio = {};
+      try { bio = JSON.parse(f.biometriaWebauthn || '{}'); } catch (e) {}
+      let geo = {};
+      try { geo = JSON.parse(f.geo || '{}'); } catch (e) {}
+
+      identificadoresHtml = `
+        <div class="identificadores">
+          <div>🔑 Conta Google: ${bio.googleEmail || '-'}</div>
+          <div>🔒 Biometria do aparelho: ${bio.webauthn ? 'confirmada ✅' : 'não confirmada ⚠️'}</div>
+          <div>📍 Localização: ${geo.lat ? `${geo.lat.toFixed(5)}, ${geo.lng.toFixed(5)}` : 'não capturada'}</div>
+          <div>🔐 Hash: <code>${f.hash}</code></div>
+        </div>
+      `;
+    }
+
     return `
       <div class="historico-item">
-        <span class="badge ${badgeClasse}">${f.status}</span>
+        <span class="badge ${badgeTipo}">${f.tipo}</span>
+        <span class="badge ${badgeStatus}">${f.status}</span>
         &nbsp; ${new Date(dataRef).toLocaleString('pt-BR')}<br>
-        <strong>Itens:</strong> ${itens.map(i => i.nome).join(', ')}<br>
+        ${itens.length ? `<strong>Itens:</strong> ${itens.map(i => i.nome).join(', ')}<br>` : ''}
         ${f.pdfUrl ? `<a href="${f.pdfUrl}" target="_blank">Ver PDF</a>` : ''}
+        ${identificadoresHtml}
       </div>
     `;
   }).join('');
