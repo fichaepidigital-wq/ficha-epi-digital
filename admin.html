@@ -4,77 +4,112 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cadastro de Funcionário</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-  <header class="topo">
-    <h1>👥 Cadastro de Funcionário</h1>
-    <p>Cadastro, histórico e exportação de fichas</p>
-    <nav class="nav-abas">
-      <a href="index.html" class="aba">📋 Registro de EPI</a>
-      <a href="admin.html" class="aba ativa">👥 Cadastro de Funcionário</a>
+<div class="app-shell">
+
+  <aside class="sidebar-nova">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i data-lucide="shield-check"></i></div>
+      <span class="brand-name">Ficha<strong>EPI</strong></span>
+    </div>
+
+    <span class="sidebar-label">Menu</span>
+    <a href="index.html" class="sidebar-link"><i data-lucide="clipboard-list"></i> Registro de EPI</a>
+    <a href="admin.html" class="sidebar-link ativo"><i data-lucide="users"></i> Cadastro de Funcionário</a>
+
+    <span class="sidebar-label">Funcionários</span>
+    <button type="button" class="sidebar-link sidebar-item" data-painel="painel-lista"><i data-lucide="list"></i> Todos os funcionários</button>
+    <button type="button" class="sidebar-link sidebar-item ativo" data-painel="painel-novo"><i data-lucide="user-plus"></i> Novo funcionário</button>
+
+    <div class="sidebar-footer-card">
+      <i data-lucide="shield"></i>
+      <strong>Segurança em primeiro lugar</strong>
+      <p>Mantenha os dados dos funcionários sempre atualizados e seguros.</p>
+    </div>
+  </aside>
+
+  <div class="main-area">
+
+    <header class="topbar">
+      <div class="topbar-title">
+        <div class="title-icon"><i data-lucide="users"></i></div>
+        <div>
+          <h1>Cadastro de Funcionário</h1>
+          <p>Gerencie o cadastro, histórico e exportação de fichas</p>
+        </div>
+      </div>
+      <div class="user-menu"><i data-lucide="user"></i> Administrador <i data-lucide="chevron-down"></i></div>
+    </header>
+
+    <nav class="tabs-nav">
+      <a href="index.html" class="tab-link"><i data-lucide="clipboard-list"></i> Registro de EPI</a>
+      <a href="admin.html" class="tab-link ativa"><i data-lucide="users"></i> Cadastro de Funcionário</a>
     </nav>
-  </header>
 
-  <div class="layout-admin">
-
-    <aside class="sidebar">
-      <button type="button" class="sidebar-item ativo" data-painel="painel-novo">➕ Novo Funcionário</button>
-      <button type="button" class="sidebar-item" data-painel="painel-lista">👥 Funcionários</button>
-    </aside>
-
-    <main class="conteudo-admin">
+    <main>
 
       <section id="painel-novo" class="painel">
-        <div class="cartao">
-          <h2>Cadastrar novo funcionário</h2>
-          <form id="form-funcionario">
-            <div class="grid-2">
-              <div>
-                <label for="f-nome">Nome completo</label>
-                <input type="text" id="f-nome" required>
+        <div class="card-principal">
+          <div class="card-info-lateral">
+            <div class="icone-grande"><i data-lucide="id-card"></i></div>
+            <h3>Preencha os dados do funcionário</h3>
+            <p>Todos os campos são importantes para manter o registro completo e organizado.</p>
+          </div>
+          <div class="card-conteudo">
+            <h2><i data-lucide="user-plus"></i> Cadastrar novo funcionário</h2>
+            <form id="form-funcionario">
+              <div class="grid-2">
+                <div>
+                  <label for="f-nome">Nome completo</label>
+                  <div class="campo-icone"><i data-lucide="user"></i><input type="text" id="f-nome" placeholder="Ex: João da Silva" required></div>
+                </div>
+                <div>
+                  <label for="f-cargo">Cargo</label>
+                  <div class="campo-icone"><i data-lucide="briefcase"></i><input type="text" id="f-cargo" placeholder="Ex: Técnico de Segurança"></div>
+                </div>
               </div>
-              <div>
-                <label for="f-cargo">Cargo</label>
-                <input type="text" id="f-cargo">
+              <div class="grid-2">
+                <div>
+                  <label for="f-setor">Setor</label>
+                  <div class="campo-icone"><i data-lucide="building-2"></i><input type="text" id="f-setor" placeholder="Ex: Operações"></div>
+                </div>
+                <div>
+                  <label for="f-matricula">Matrícula</label>
+                  <div class="campo-icone"><i data-lucide="badge"></i><input type="text" id="f-matricula" placeholder="Ex: 12345"></div>
+                </div>
               </div>
-            </div>
-            <div class="grid-2">
-              <div>
-                <label for="f-setor">Setor</label>
-                <input type="text" id="f-setor">
+              <div class="grid-2">
+                <div>
+                  <label for="f-telefone">Telefone (com DDD)</label>
+                  <div class="campo-icone"><i data-lucide="phone"></i><input type="tel" id="f-telefone" placeholder="13996559306"></div>
+                </div>
+                <div>
+                  <label for="f-cpf">CPF</label>
+                  <div class="campo-icone"><i data-lucide="credit-card"></i><input type="text" id="f-cpf" placeholder="000.000.000-00"></div>
+                </div>
               </div>
-              <div>
-                <label for="f-matricula">Matrícula</label>
-                <input type="text" id="f-matricula">
-              </div>
-            </div>
-            <div class="grid-2">
-              <div>
-                <label for="f-telefone">Telefone (com DDD)</label>
-                <input type="tel" id="f-telefone" placeholder="13996559306">
-              </div>
-              <div>
-                <label for="f-cpf">CPF</label>
-                <input type="text" id="f-cpf">
-              </div>
-            </div>
-            <label for="f-email">E-mail Google (obrigatório para assinar)</label>
-            <input type="email" id="f-email" required placeholder="funcionario@gmail.com">
-            <br><br>
-            <button type="submit" class="botao primario">Cadastrar funcionário</button>
-          </form>
-          <div id="resultado-cadastro" class="resultado"></div>
+              <label for="f-email">E-mail Google (obrigatório para assinar)</label>
+              <div class="campo-icone"><i data-lucide="mail"></i><input type="email" id="f-email" required placeholder="exemplo@gmail.com"></div>
+              <br><br>
+              <button type="submit" class="botao primario"><i data-lucide="save"></i> Cadastrar funcionário</button>
+            </form>
+            <div id="resultado-cadastro" class="resultado"></div>
 
-          <div id="resultado-termo" class="cartao resultado-link" style="display:none; margin-top:14px;">
-            <h2>📄 Termo de Responsabilidade pendente</h2>
-            <p>Envie este link para o funcionário assinar antes de qualquer entrega de EPI:</p>
-            <div class="campo-link">
-              <input type="text" id="input-link-termo" readonly>
-              <button type="button" id="btn-copiar-termo" class="botao secundario">Copiar</button>
+            <div id="resultado-termo" class="cartao resultado-link" style="display:none; margin-top:14px;">
+              <h2>📄 Termo de Responsabilidade pendente</h2>
+              <p>Envie este link para o funcionário assinar antes de qualquer entrega de EPI:</p>
+              <div class="campo-link">
+                <input type="text" id="input-link-termo" readonly>
+                <button type="button" id="btn-copiar-termo" class="botao secundario">Copiar</button>
+              </div>
+              <a id="btn-whatsapp-termo" class="botao whatsapp" target="_blank">📲 Enviar por WhatsApp</a>
             </div>
-            <a id="btn-whatsapp-termo" class="botao whatsapp" target="_blank">📲 Enviar por WhatsApp</a>
           </div>
         </div>
       </section>
@@ -123,64 +158,66 @@
 
     </main>
   </div>
+</div>
 
-  <!-- Modal de edição completa do funcionário -->
-  <div id="modal-editar-funcionario" class="modal-overlay" style="display:none;">
-    <div class="modal-conteudo cartao">
-      <h2>Editar funcionário</h2>
-      <form id="form-editar-funcionario">
-        <input type="hidden" id="ed-id">
-        <div class="grid-2">
-          <div>
-            <label for="ed-nome">Nome completo</label>
-            <input type="text" id="ed-nome" required>
-          </div>
-          <div>
-            <label for="ed-cargo">Cargo</label>
-            <input type="text" id="ed-cargo">
-          </div>
+<!-- Modal de edição completa do funcionário -->
+<div id="modal-editar-funcionario" class="modal-overlay" style="display:none;">
+  <div class="modal-conteudo cartao">
+    <h2>Editar funcionário</h2>
+    <form id="form-editar-funcionario">
+      <input type="hidden" id="ed-id">
+      <div class="grid-2">
+        <div>
+          <label for="ed-nome">Nome completo</label>
+          <input type="text" id="ed-nome" required>
         </div>
-        <div class="grid-2">
-          <div>
-            <label for="ed-setor">Setor</label>
-            <input type="text" id="ed-setor">
-          </div>
-          <div>
-            <label for="ed-matricula">Matrícula</label>
-            <input type="text" id="ed-matricula">
-          </div>
+        <div>
+          <label for="ed-cargo">Cargo</label>
+          <input type="text" id="ed-cargo">
         </div>
-        <div class="grid-2">
-          <div>
-            <label for="ed-telefone">Telefone (com DDD)</label>
-            <input type="tel" id="ed-telefone">
-          </div>
-          <div>
-            <label for="ed-cpf">CPF</label>
-            <input type="text" id="ed-cpf">
-          </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <label for="ed-setor">Setor</label>
+          <input type="text" id="ed-setor">
         </div>
-        <label for="ed-email">E-mail Google</label>
-        <input type="email" id="ed-email" required>
-        <label for="ed-status">Status</label>
-        <select id="ed-status">
-          <option value="Ativo">Ativo</option>
-          <option value="Inativo">Inativo</option>
-        </select>
-        <br><br>
-        <div class="linha-acoes">
-          <button type="submit" class="botao primario">Salvar alterações</button>
-          <button type="button" id="btn-fechar-modal" class="botao secundario">Cancelar</button>
+        <div>
+          <label for="ed-matricula">Matrícula</label>
+          <input type="text" id="ed-matricula">
         </div>
-        <p id="status-edicao" class="ajuda"></p>
-      </form>
-    </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <label for="ed-telefone">Telefone (com DDD)</label>
+          <input type="tel" id="ed-telefone">
+        </div>
+        <div>
+          <label for="ed-cpf">CPF</label>
+          <input type="text" id="ed-cpf">
+        </div>
+      </div>
+      <label for="ed-email">E-mail Google</label>
+      <input type="email" id="ed-email" required>
+      <label for="ed-status">Status</label>
+      <select id="ed-status">
+        <option value="Ativo">Ativo</option>
+        <option value="Inativo">Inativo</option>
+      </select>
+      <br><br>
+      <div class="linha-acoes">
+        <button type="submit" class="botao primario">Salvar alterações</button>
+        <button type="button" id="btn-fechar-modal" class="botao secundario">Cancelar</button>
+      </div>
+      <p id="status-edicao" class="ajuda"></p>
+    </form>
   </div>
+</div>
 
-  <footer class="rodape">
-    Ficha de EPI Digital — Área administrativa
-  </footer>
+<footer class="rodape-app">
+  © 2026 FichaEPI · Sistema de Gestão de EPI
+</footer>
 
-  <script src="admin.js"></script>
+<script src="admin.js"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>
