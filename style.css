@@ -287,6 +287,26 @@ select, input[type="text"], input[type="tel"], input[type="email"] {
   font-size: 0.8rem;
   padding: 6px 10px;
 }
+.filtros-historico {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.filtros-historico label {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+.filtros-historico input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--borda);
+  font-size: 0.88rem;
+}
+@media (max-width: 480px) {
+  .filtros-historico { grid-template-columns: 1fr; }
+}
 .historico-item {
   padding: 10px;
   border: 1px solid var(--borda);
