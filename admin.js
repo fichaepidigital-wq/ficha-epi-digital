@@ -88,7 +88,7 @@ document.getElementById('btn-copiar-termo').addEventListener('click', () => {
   setTimeout(() => { btn.textContent = 'Copiar'; }, 1500);
 });
 
-/* ---------------------- LISTAGEM E EDIÇÃO DE FUNCIONÁRIOS ---------------------- */
+/* ---------------------- LISTAGEM DE FUNCIONÁRIOS ---------------------- */
 
 async function carregarFuncionarios() {
   const res = await fetch(`${CONFIG.API_URL}?action=funcionarios`);
@@ -102,55 +102,87 @@ async function carregarFuncionarios() {
 
   corpo.innerHTML = funcionariosCache.map(f => `
     <tr data-id="${f.id}">
-      <td>${f.nome}</td>
-      <td>
-        <input type="email" class="editavel" value="${f.email || ''}" data-campo="email">
-      </td>
-      <td>
-        <select class="editavel" data-campo="status">
-          <option value="Ativo" ${f.status !== 'Inativo' ? 'selected' : ''}>Ativo</option>
-          <option value="Inativo" ${f.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
-        </select>
-      </td>
+      <td><button type="button" class="link-nome" onclick="abrirEdicaoFuncionario('${f.id}')">${f.nome}</button></td>
+      <td>${f.cargo || '-'}</td>
+      <td><span class="badge ${f.status === 'Inativo' ? 'pendente' : 'ok'}">${f.status || 'Ativo'}</span></td>
       <td class="linha-acoes">
-        <button type="button" class="botao secundario" onclick="salvarEdicaoFuncionario('${f.id}')">Salvar</button>
         <button type="button" class="botao secundario" onclick="verHistorico('${f.id}')">Histórico</button>
       </td>
     </tr>
   `).join('');
 }
 
-async function salvarEdicaoFuncionario(funcionarioId) {
-  const linha = document.querySelector(`tr[data-id="${funcionarioId}"]`);
-  const email = linha.querySelector('[data-campo="email"]').value;
-  const status = linha.querySelector('[data-campo="status"]').value;
-  const botao = linha.querySelector('.linha-acoes button');
+/* ---------------------- EDIÇÃO COMPLETA DO FUNCIONÁRIO (MODAL) ---------------------- */
 
-  botao.disabled = true;
-  botao.textContent = 'Salvando...';
+function abrirEdicaoFuncionario(funcionarioId) {
+  const f = funcionariosCache.find(x => x.id === funcionarioId);
+  if (!f) return;
+
+  document.getElementById('ed-id').value = f.id;
+  document.getElementById('ed-nome').value = f.nome || '';
+  document.getElementById('ed-cargo').value = f.cargo || '';
+  document.getElementById('ed-setor').value = f.setor || '';
+  document.getElementById('ed-matricula').value = f.matricula || '';
+  document.getElementById('ed-telefone').value = f.telefone || '';
+  document.getElementById('ed-cpf').value = f.cpf || '';
+  document.getElementById('ed-email').value = f.email || '';
+  document.getElementById('ed-status').value = f.status === 'Inativo' ? 'Inativo' : 'Ativo';
+  document.getElementById('status-edicao').textContent = '';
+
+  document.getElementById('modal-editar-funcionario').style.display = 'flex';
+}
+
+function fecharModalEdicao_() {
+  document.getElementById('modal-editar-funcionario').style.display = 'none';
+}
+
+document.getElementById('btn-fechar-modal').addEventListener('click', fecharModalEdicao_);
+document.getElementById('modal-editar-funcionario').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-editar-funcionario') fecharModalEdicao_();
+});
+
+document.getElementById('form-editar-funcionario').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  const status = document.getElementById('status-edicao');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  const payload = {
+    action: 'editarFuncionario',
+    id: document.getElementById('ed-id').value,
+    nome: document.getElementById('ed-nome').value,
+    cargo: document.getElementById('ed-cargo').value,
+    setor: document.getElementById('ed-setor').value,
+    matricula: document.getElementById('ed-matricula').value,
+    telefone: document.getElementById('ed-telefone').value,
+    cpf: document.getElementById('ed-cpf').value,
+    email: document.getElementById('ed-email').value,
+    status: document.getElementById('ed-status').value
+  };
 
   try {
     const res = await fetch(CONFIG.API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'editarFuncionario', id: funcionarioId, email, status })
+      body: JSON.stringify(payload)
     });
     const resultado = await res.json();
+
     if (resultado.success) {
-      botao.textContent = '✅ Salvo';
-      setTimeout(() => { botao.textContent = 'Salvar'; botao.disabled = false; }, 1500);
-      carregarFuncionarios();
+      status.textContent = '✅ Salvo com sucesso!';
+      await carregarFuncionarios();
+      setTimeout(fecharModalEdicao_, 700);
     } else {
-      alert('Erro: ' + resultado.error);
-      botao.disabled = false;
-      botao.textContent = 'Salvar';
+      status.textContent = '⚠️ ' + resultado.error;
     }
   } catch (err) {
-    alert('Falha ao salvar: ' + err.message);
-    botao.disabled = false;
-    botao.textContent = 'Salvar';
+    status.textContent = '⚠️ Falha ao salvar: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar alterações';
   }
-}
+});
 
 /* ---------------------- HISTÓRICO DE FICHAS ---------------------- */
 
@@ -219,7 +251,7 @@ function renderizarHistorico_(fichas) {
 
   document.getElementById('lista-historico').innerHTML = ordenadas.map(f => {
     const itens = JSON.parse(f.itens || '[]');
-    const badgeStatus = f.status === 'Assinada' ? 'assinada' : 'pendente';
+    const statusClasse = { Assinada: 'assinada', Pendente: 'pendente', Cancelada: 'cancelada' }[f.status] || 'pendente';
     const badgeTipo = f.tipo === 'Termo' ? 'termo' : 'entrega';
     const dataRef = f.status === 'Assinada' ? f.assinadoEm : f.criadoEm;
 
@@ -244,17 +276,45 @@ function renderizarHistorico_(fichas) {
       ? itens.map(i => `${i.nome}${i.ca ? ' (CA ' + i.ca + ')' : ''}${i.devolucao ? ' — devolução obrigatória' : ''}`).join(', ')
       : '';
 
+    const botaoCancelar = f.status === 'Pendente'
+      ? `<button type="button" class="botao cancelar botao-pequeno" onclick="cancelarFichaHistorico('${f.id}')">🗑️ Cancelar</button>`
+      : '';
+
     return `
-      <div class="historico-item">
+      <div class="historico-item" data-ficha-id="${f.id}">
         <span class="badge ${badgeTipo}">${f.tipo}</span>
-        <span class="badge ${badgeStatus}">${f.status}</span>
+        <span class="badge ${statusClasse}">${f.status}</span>
         &nbsp; ${new Date(dataRef).toLocaleString('pt-BR')}<br>
         ${itensTexto ? `<strong>Itens:</strong> ${itensTexto}<br>` : ''}
         ${f.pdfUrl ? `<a href="${f.pdfUrl}" target="_blank">Ver PDF</a>` : ''}
         ${identificadoresHtml}
+        ${botaoCancelar}
       </div>
     `;
   }).join('');
+}
+
+async function cancelarFichaHistorico(fichaId) {
+  if (!confirm('Tem certeza que deseja cancelar esta ficha pendente?')) return;
+
+  try {
+    const res = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'cancelarFicha', id: fichaId })
+    });
+    const resultado = await res.json();
+
+    if (resultado.success) {
+      const ficha = fichasCache.find(f => f.id === fichaId);
+      if (ficha) ficha.status = 'Cancelada';
+      renderizarHistorico_(fichasCache);
+    } else {
+      alert('Erro: ' + resultado.error);
+    }
+  } catch (err) {
+    alert('Falha ao cancelar: ' + err.message);
+  }
 }
 
 /* ---------------------- EXPORTAR EM PDF (ZIP), COM FILTROS ---------------------- */
