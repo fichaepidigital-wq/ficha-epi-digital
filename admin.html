@@ -91,7 +91,27 @@
 
         <section class="cartao" id="secao-historico" style="display:none;">
           <h2 id="titulo-historico">Histórico</h2>
-          <button type="button" id="btn-exportar-zip" class="botao secundario">📦 Exportar todas em PDF (.zip)</button>
+
+          <div class="filtros-historico">
+            <div>
+              <label for="filtro-tipo-epi">Filtrar por tipo de EPI</label>
+              <input type="text" id="filtro-tipo-epi" placeholder="Ex: Capacete">
+            </div>
+            <div>
+              <label for="filtro-data-inicio">De</label>
+              <input type="date" id="filtro-data-inicio">
+            </div>
+            <div>
+              <label for="filtro-data-fim">Até</label>
+              <input type="date" id="filtro-data-fim">
+            </div>
+          </div>
+          <div class="linha-acoes" style="margin-bottom: 14px;">
+            <button type="button" id="btn-aplicar-filtro" class="botao secundario">Aplicar filtro</button>
+            <button type="button" id="btn-limpar-filtro" class="botao secundario">Limpar filtro</button>
+          </div>
+
+          <button type="button" id="btn-exportar-zip" class="botao secundario">📦 Exportar em PDF (.zip)</button>
           <p id="status-exportar" class="ajuda"></p>
           <div id="lista-historico"></div>
         </section>
