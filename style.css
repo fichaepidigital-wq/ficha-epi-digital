@@ -2,6 +2,7 @@
   --azul: #1a1a2e;
   --azul-claro: #2d3561;
   --destaque: #e94560;
+  --verde: #25d366;
   --fundo: #f4f5f7;
   --borda: #dcdde1;
   --texto-suave: #6b7280;
@@ -21,9 +22,20 @@ body {
   color: white;
   padding: 28px 16px;
   text-align: center;
+  position: relative;
 }
 .topo h1 { margin: 0 0 6px; font-size: 1.6rem; }
 .topo p { margin: 0; color: #c7c9d9; font-size: 0.95rem; }
+.nav-topo { margin-top: 10px; }
+.nav-topo a {
+  color: #c7c9d9;
+  text-decoration: none;
+  font-size: 0.85rem;
+  border: 1px solid #44456a;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+.nav-topo a:hover { color: white; border-color: white; }
 
 .container {
   max-width: 640px;
@@ -46,7 +58,7 @@ body {
 
 label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
 
-select {
+select, input[type="text"], input[type="tel"], input[type="email"] {
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
@@ -73,7 +85,7 @@ select {
 .epi-item:hover { border-color: var(--azul-claro); }
 .epi-item small { color: var(--texto-suave); }
 
-.ajuda { color: var(--texto-suave); font-size: 0.88rem; margin-top: -4px; }
+.ajuda { color: var(--texto-suave); font-size: 0.88rem; margin-top: 8px; }
 
 #signature-pad {
   width: 100%;
@@ -101,6 +113,9 @@ select {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
 }
 .botao.primario {
   width: 100%;
@@ -114,6 +129,13 @@ select {
   background: white;
   border: 1px solid var(--borda);
   color: var(--azul);
+}
+.botao.whatsapp {
+  width: 100%;
+  background: var(--verde);
+  color: white;
+  padding: 14px;
+  margin-top: 10px;
 }
 
 .resultado {
@@ -130,6 +152,72 @@ select {
 .resultado code {
   word-break: break-all;
   font-size: 0.78rem;
+}
+
+.resultado-link { border-color: #b7ecc8; background: #f4fbf6; }
+.campo-link {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+.campo-link input {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+/* Etapas da página de assinatura */
+.etapa {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.etapa.ativa {
+  opacity: 1;
+  pointer-events: auto;
+}
+.etapa.concluida {
+  opacity: 0.7;
+}
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.badge.pendente { background: #fff3cd; color: #856404; }
+.badge.assinada { background: #d4edda; color: #155724; }
+.badge.ok { background: #d4edda; color: #155724; }
+
+/* Área administrativa */
+.tabela-funcionarios { width: 100%; border-collapse: collapse; }
+.tabela-funcionarios th, .tabela-funcionarios td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--borda);
+  font-size: 0.9rem;
+}
+.linha-acoes { display: flex; gap: 6px; flex-wrap: wrap; }
+.linha-acoes button {
+  font-size: 0.8rem;
+  padding: 6px 10px;
+}
+.historico-item {
+  padding: 10px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+}
+.historico-item a { color: var(--azul-claro); }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 480px) {
+  .grid-2 { grid-template-columns: 1fr; }
 }
 
 .rodape {
